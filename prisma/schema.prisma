@@ -23,11 +23,42 @@ model Project {
   id          String   @id @default(cuid())
   name        String
   description String?
-  url         String?
   image       String?
   tags        String[]
-  author      User?    @relation(fields: [authorId], references: [id])
-  authorId    String?
+
+  identifier String @unique // might use a link shortener for this (p1234)
+
+  author   User?   @relation(fields: [authorId], references: [id])
+  authorId String?
+
+  subprojects Subproject[]
+  versions    Version[]
+}
+
+model Subproject {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  type        String
+
+  doi String?
+  url String?
+
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+}
+
+model Version {
+  id      String   @id @default(cuid())
+  name    String
+  changes String?
+  tags    String[]
+
+  identifier String @unique // might use a link shortener for this (v1234)
+
+  Project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
 }
 
 model Account {
@@ -56,7 +87,8 @@ model Session {
   sessionToken String   @unique @map("session_token")
   userId       String   @map("user_id")
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -65,10 +97,11 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  posts         Post[]
-  accounts      Account[]
-  sessions      Session[]
-  Project       Project[]
+
+  posts    Post[]
+  accounts Account[]
+  sessions Session[]
+  projects Project[]
 }
 
 model VerificationToken {
